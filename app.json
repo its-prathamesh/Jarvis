@@ -24,9 +24,13 @@
       },
       "package": "com.anonymous.Jarvis"
     },
-    
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "6b152cfc-466a-4c00-879a-38327d40c4b3"
+      }
     }
   }
 }

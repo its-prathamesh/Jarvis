@@ -1,60 +1,98 @@
-import { View, Text , Image, ScrollView, TouchableOpacity} from 'react-native'
-import React, { useEffect, useState } from 'react'
+import { View, Text , Image, ScrollView, TouchableOpacity, Alert} from 'react-native'
+import React, { useEffect, useRef, useState } from 'react'
 import {widthPercentageToDP as wp, heightPercentageToDP as hp} from 'react-native-responsive-screen';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Features from '../components/features';
 import { dummyMessages } from '../constants/dummy';
 import Voice from '@react-native-community/voice';
-import * as Permissions from 'expo-permissions';
+//import * as Permissions from 'expo-permissions';
+import { Permissions } from "expo-permissions";
+import { apiCall } from '../api/openAI';
 
 
 
 
-export default function HomeScreen() {
-  const [messages, setMessages]= useState(dummyMessages);
+export default function HomeScreen()
+{
+  const [messages, setMessages]= useState([]);
   const [recording, setRecording] = useState(false);
-  const [speaking, setSpeaking] = useState(true);
+  const [speaking, setSpeaking] = useState(false);
+  const [result, setResult] = useState('');
+  const [loading, setLoading]= useState(false);
+  const ScrollViewRef=useRef();
 
   const speechStartHandler= e=>{
     console.log('speech start handler');
   }
-  const speechEndHandler= e=>{
-    setRecording(false);
-    console.log('speech start handler');
-  }
+
 
   const speechResultsHandler= e=>{
     console.log('voice event: ',e);
+    const text = e.value[0];
+    setResult(text);
+
   }
 
   const speechErrorHandler= e=>{
     console.log('speech error handler: ',e);
   }
 
+  const speechEndHandler= e=>{
+    setRecording(false);
+    console.log('speech stop handler');
+  }
+
   const startRecording = async()=>{
        setRecording(true);
         try {
-          // Check and request audio recording permissions
-          const { status } = await Permissions.askAsync(Permissions.AUDIO_RECORDING);
-          if (status === 'granted') {
             await Voice.start('en-GB');
-          } else {
-            console.log('Permission denied for audio recording');
-          }
-        } catch (error) {
+          }catch (error) {
           console.log('Error starting recording: ', error);
         }
-        }
+      }
 
   const stopRecording = async()=>{
     try{
         await Voice.stop();
         setRecording(false);
+        console.log('stop rev')
         //fetch the result from chatgpt
+        fetchResponse();
     }catch(error){
       console.log('error: ',error);
     }
-}
+  }
+
+
+  const fetchResponse= ()=>{
+    console.log("FETCH")
+    if(result.trim().length>0){
+      let newMessages = [...messages];
+      newMessages.push({role: 'user', content: result.trim()});
+      setMessages([...newMessages]);
+      updateScrollView();
+      setLoading(true);
+
+      apiCall(result.trim(), newMessages).then(res=>{
+        console.log('got api data:',res);
+        setLoading(false);
+          if(res.success){
+            setMessages([...res.data]);
+            updateScrollView();
+            setResult('');
+          }else{
+            Alert.alert('Error', res.message)
+          }
+      })
+    }
+  }
+
+  const updateScrollView = () =>{
+    setTimeout(() =>{
+      ScrollViewRef?.current?.scrollToEnd({animated: true})
+    }, 200)
+
+  }
 
 
 
@@ -68,11 +106,12 @@ export default function HomeScreen() {
     setSpeaking(false);
   }
 
+  
   useEffect(()=>{
     //voice handler event
     Voice.onSpeechStart = speechStartHandler;
     Voice.onSpeechEnd = speechEndHandler;
-    Voice.onSpeechResults = speechResultsHandler;
+    Voice.onSpeechResults = speec.hResultsHandler;
     Voice.onSpeechError= speechErrorHandler;
 
     return()=>{
@@ -82,8 +121,10 @@ export default function HomeScreen() {
 
   },[])
 
-  
-  return (
+  console.log('result: ',result);
+
+
+return (
     <View className="flex-1 bg-white">
       <SafeAreaView className="flex-1 flex mx-5">
         {/* bot icon */}
@@ -105,6 +146,7 @@ export default function HomeScreen() {
                   className="bg-neutral-200 rounded-3xl p-4"
               >
               <ScrollView
+                    ref={ScrollViewRef}
                     bounces={false}
                     className="space-y-4"
                     showsVerticalScrollIndicator={false}
@@ -152,7 +194,7 @@ export default function HomeScreen() {
                                 </Text>
                               </View>
                             </View>
-                          )
+                          );
                         
                         }
                       
@@ -169,7 +211,14 @@ export default function HomeScreen() {
         {/* recording, clear and stop buttons*/}
         <View className="flex justify-center items-center">
           {
-            recording? (
+            loading? (
+              <Image
+                source={require('../../assets/images/voiceLoading.gif')}
+                style={{width: hp(10), height: hp(10)}}
+            />
+
+            ):
+             recording? (
               <TouchableOpacity onPress={stopRecording}>
                  {/* recording stop button */}
               <Image
@@ -213,10 +262,10 @@ export default function HomeScreen() {
           }
 
 
-          
+      
 
         </View>
       </SafeAreaView> 
     </View>
-  )
+  );
 }

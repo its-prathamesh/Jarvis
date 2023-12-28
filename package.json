@@ -12,8 +12,10 @@
     "@react-native-community/voice": "^1.1.9",
     "@react-navigation/native": "^6.1.9",
     "@react-navigation/native-stack": "^6.9.17",
+    "axios": "^1.6.2",
     "expo": "~49.0.15",
     "expo-camera": "~13.4.4",
+    "expo-dev-client": "~2.4.12",
     "expo-permissions": "~14.2.1",
     "expo-splash-screen": "~0.20.5",
     "expo-status-bar": "~1.6.0",
@@ -24,8 +26,8 @@
     "react-native-responsive-screen": "^1.4.2",
     "react-native-safe-area-context": "4.6.3",
     "react-native-screens": "~3.22.0",
-    "tailwindcss": "^3.3.2",
-    "expo-dev-client": "~2.4.12"
+    "string-similarity": "^4.0.4",
+    "tailwindcss": "^3.3.2"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0"
