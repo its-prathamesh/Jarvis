@@ -111,7 +111,7 @@ export default function HomeScreen()
     //voice handler event
     Voice.onSpeechStart = speechStartHandler;
     Voice.onSpeechEnd = speechEndHandler;
-    Voice.onSpeechResults = speec.hResultsHandler;
+    Voice.onSpeechResults =speechResultsHandler;
     Voice.onSpeechError= speechErrorHandler;
 
     return()=>{
